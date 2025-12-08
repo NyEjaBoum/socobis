@@ -1,0 +1,17 @@
+- JAVA 8 / JDK 1.8
+- Wildfly 10
+- ANT equivalent de javac (Ant -f build.xml)
+- Oracle 11G
+
+
+ejb/apj.properties pour modifier les config db (create user oracle a mettre dans apj)
+build.xml puis aller dans ca pour modif le chemin
+DMP base de donnee a importer dans oracle
+Imp a utiliser
+
+a mettre tout ca dans docker
+
+localhost:8080/socobis/login
+#admin:test
+
+

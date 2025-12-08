@@ -1,0 +1,15 @@
+-- redemarena le oracle 
+docker restart oracle_11g
+
+-- esorina le dmp taloha tao amle container
+docker exec -u 0 oracle_11g rm -f /tmp/socobis.dmp
+
+--copiena le dmp vaovao
+REM Utiliser le dmp fourni dans le dossier racine du workspace (socobis_20251107)
+docker cp "socobis_20251107\socobis_20251107.dmp" oracle_11g:/tmp/socobis.dmp
+
+--importena le dmp
+docker exec -it oracle_11g bash -c "imp system/oracle@XE file=/tmp/socobis.dmp full=y ignore=y"
+
+
+ela be pr io sady misy erreur pr le dmp 

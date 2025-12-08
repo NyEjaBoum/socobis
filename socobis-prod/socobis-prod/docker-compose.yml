@@ -1,0 +1,20 @@
+services:
+  socobis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: socobis-app
+    ports:
+      - "8080:8080"  # WildFly HTTP
+      - "9990:9990"  # WildFly Management
+    environment:
+      DB_HOST: host.docker.internal
+      DB_PORT: "1521"
+      DB_SERVICE: "DBCOURS.UNEPH.HT"
+      DB_USER: "socobis"
+      DB_PASSWORD: "socobis"
+    # If your app needs extra JVM options, uncomment and adjust:
+    # JAVA_OPTS: "-Xms256m -Xmx1024m"
+    # For Linux, uncomment to resolve host.docker.internal
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"

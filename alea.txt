@@ -1,0 +1,23 @@
+Fabrication 
+
+Ingerdients ( produits)
+
+base + compose = fini 
+ex: base : farine, sucre
+farine + sucre = pate petri (compose)
+
+
+note Ny voary
+Produit : - de base : rano siramamy,farine
+compose : petri
+
+finie : produits compose 
+        misy prix de vente 
+
+
+procedure:
+ordre de fabrication 
+
+mametraka bouton am fiche facture dia hoe echanger par ligne (quantite partielle)
+
+montant facture > = montant de fondement teo aloha 

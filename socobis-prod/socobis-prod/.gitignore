@@ -1,0 +1,150 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+.mtj.tmp/
+hs_err_pid*
+
+### Build Tools ###
+build-file/
+target/
+dist/
+build/
+out/
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+### Ant ###
+.ant-targets-build.xml
+
+### Maven ###
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+### Gradle ###
+.gradle
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+*.idea
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+local.properties
+.loadpath
+.recommenders
+.externalToolBuilders/
+*.launch
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+build.xml.data
+
+### VS Code ###
+.vscode/
+.code-workspace
+
+### OS Files ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+### Docker ###
+*.log
+.dockerignore
+
+### Database ###
+*.dmp
+*.sql.bak
+*.sql~
+
+### Logs ###
+*.log
+logs/
+*.log.*
+wildfly.log
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*~
+
+### Configuration sensible (décommenter si nécessaire) ###
+# apj.properties
+# database.properties
+# application.properties
+
+### Build artifacts ###
+build-file/ear/*.jar
+build-file/ear/*.ear
+build-file/socobis_jar/**/*.class
+build-file/socobis_war/**/*.class
+socobis-ejb/build/
+socobis-war/build/
+
+### Python (pour google-adk) ###
+google-adk/.idea/
+google-adk/.venv/
+google-adk/__pycache__/
+google-adk/*.pyc
+google-adk/*.pyo
+google-adk/*.pyd
+google-adk/.Python
+google-adk/env/
+google-adk/venv/
+google-adk/ENV/
+google-adk/*.egg-info/
+google-adk/dist/
+google-adk/build/
+
+### Deployment ###
+deployments/
+standalone/log/
+standalone/tmp/
+standalone/data/
+
+### Personal notes ###
+notes.txt
+TODO.txt
+NOTES.md
+
