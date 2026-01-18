@@ -26,6 +26,7 @@
         pageInsert.getFormu().getChamp("designation").setLibelle("d&eacute;signation");
         pageInsert.getFormu().getChamp("debit").setLibelle("d&eacute;bit");
         pageInsert.getFormu().getChamp("idCaisse").setLibelle("Caisse");
+        pageInsert.getFormu().getChamp("taux").setVisible(false);
         pageInsert.getFormu().getChamp("daty").setLibelle("Date");
         pageInsert.getFormu().getChamp("idVirement").setVisible(false);
         pageInsert.getFormu().getChamp("idVenteDetail").setVisible(false);

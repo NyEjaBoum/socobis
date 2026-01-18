@@ -47,6 +47,7 @@ public class FactureFournisseur extends vente.FactureCF{
     int estPrevu;
      private double montantPerteGain;
 
+
     public String getCompteauxiliaire() {
         return compteauxiliaire;
     }

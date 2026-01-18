@@ -6,13 +6,10 @@
 
 
 <%@page import="vente.VenteDetailsLib"%>
-<%@page import="vente.Vente"%>
 <%@ page import="user.*" %>
 <%@ page import="bean.*" %>
 <%@ page import="utilitaire.*" %>
 <%@ page import="affichage.*" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.HashMap" %>
 
 
 <%
@@ -22,25 +19,33 @@
         String listeCrt[] = {};
         String listeInt[] = {};
         String libEntete[] = {"id", "idproduitlib","designation","pu","qte","remise","punet","tva","montantht","montantttc","poids","reste","unitelib"};
+
         PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
         pr.setUtilisateur((user.UserEJB) session.getValue("u"));
         pr.setLien((String) session.getValue("lien"));
+
+        // 1. Apply the WHERE clause filter FIRST (Before creating the object page)
         if(request.getParameter("id") != null){
             pr.setAWhere(" and idVente='"+request.getParameter("id")+"'");
         }
-        String idClient = "";
-        if(request.getParameter("id") != null){
-            Vente vente = Vente.getById(null, request.getParameter("id"));
-            idClient = vente.getIdClient();
-        }
+
         String[] colSomme = null;
 
-        Map<String,String> lienTab=new HashMap();
-        lienTab.put("changer",pr.getLien() + "?but=vente/vente-changer-quantite.jsp&idVente=" + request.getParameter("id") + "&idClient=" + idClient + "&idDetail={id}&changerEtPayer=0");
-        lienTab.put("changer et payer",pr.getLien() + "?but=vente/vente-changer-quantite.jsp&idVente=" + request.getParameter("id") + "&idClient=" + idClient + "&idDetail={id}&changerEtPayer=1");
-
+        // 2. Create the Object Page (This creates the Tableau object)
+        // *** The NullPointerException happened because you called getTableau() before this line ***
         pr.creerObjetPage(libEntete, colSomme);
-        pr.getTableau().setLienClicDroite(lienTab);
+
+        // 3. Set the Links AFTER creating the object page
+        if(request.getParameter("id") != null){
+            // You can modify the destination link here (e.g., vente-fiche.jsp or vente-details-echange.jsp)
+            String lienTableau[] = {pr.getLien() + "?but=vente/vente-details-echange.jsp"};
+            String colonneLien[] = {"id"};
+
+            // Now pr.getTableau() is not null
+            pr.getTableau().setLien(lienTableau);
+            pr.getTableau().setColonneLien(colonneLien);
+        }
+
         int nombreLigne = pr.getTableau().getData().length;
 %>
 
@@ -49,7 +54,10 @@
         String libEnteteAffiche[] =  {"id","Produit", "D&eacute;signation","PU Brut","Quantit&eacute;","Remise (En %)","PU Net","TVA(en %)","Montant HT","Montant TTC","Poids (Kg)","Reste a&grave; Livrer","Unit&eacute;"};
         pr.getTableau().setLibelleAffiche(libEnteteAffiche);
         VenteDetailsLib[] liste=(VenteDetailsLib[]) pr.getTableau().getData();
+
+    out.print("ito eh");
         if(pr.getTableau().getHtml() != null){
+            out.print("mandeha ve");
             out.println(pr.getTableau().getHtml());
     %>
     <div class="w-100" style="display: flex; flex-direction: row-reverse;">
@@ -89,6 +97,10 @@
     %><center><h4>Aucune donne trouvee</h4></center><%
     }
 
+
+%>
+</div>
+<%
     } catch (Exception e) {
         e.printStackTrace();
     }%>

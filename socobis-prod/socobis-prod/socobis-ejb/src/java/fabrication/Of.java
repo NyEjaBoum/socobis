@@ -531,7 +531,7 @@ public class Of extends ClassMere {
 
     @Override
     public Object validerObject(MapUtilisateur u, Connection c) throws Exception{
-        if(u.getIdrole().compareTo(ConstanteSocobis.CHEFFABR_RANG) != 0 && (u.getIdrole().compareTo(ConstanteSocobis.CONTREMAITRE_RANG) != 0)){
+        if(u.getIdrole().compareTo(ConstanteSocobis.CHEFFABR_RANG) != 0 && (u.getIdrole().compareTo(ConstanteSocobis.CONTREMAITRE_RANG) != 0)  && u.getIdrole().compareTo(ConstanteSocobis.DG_RANG) != 0){
             throw new Exception("Vous n'avez pas le droit de valider un OF!");
         }
         return super.validerObject(u,c);

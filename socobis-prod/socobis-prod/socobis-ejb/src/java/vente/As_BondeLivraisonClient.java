@@ -171,8 +171,6 @@ public class As_BondeLivraisonClient extends ClassMere{
             
             mv.setIdMagasin(bl.getMagasin());
             As_BondeLivraisonClientFille_Cpl[] listeF=(As_BondeLivraisonClientFille_Cpl[]) this.getListeFilleCpl("rapprochement_bf_client",c);
-            // As_BondeLivraisonClientFille_Cpl[] listeF=(As_BondeLivraisonClientFille_Cpl[]) this.getListeFilleCpl("rapprochement_bf_client_2",c);
-            
             MvtStockFille[]lf=new MvtStockFille[listeF.length];
             for(int i=0;i<listeF.length;i++) {
                 lf[i]=listeF[i].genererMvtStockFille();
@@ -276,8 +274,7 @@ public class As_BondeLivraisonClient extends ClassMere{
                         throw new Exception("Quantit\u00E9 \u00E0 livrer inf\u00E9rieur \u00E0 la quantit\u00E9 livr\u00E9e");
                     }
                 }else {
-                    filles[j].setUnite("unite");
-                    // throw new Exception("V&eacute;rifier les unit&eacute;s des produits");
+                    throw new Exception("V&eacute;rifier les unit&eacute;s des produits");
                 }
             }
         }

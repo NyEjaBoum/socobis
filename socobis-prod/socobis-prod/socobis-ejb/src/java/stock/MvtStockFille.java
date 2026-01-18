@@ -440,7 +440,7 @@ public class MvtStockFille extends ClassFille{
                 MvtStock mere = this.getMereMvtStock(c);
                 if(mere!=null && mere.getIdTypeMvStock().compareTo(ConstanteSocobis.TYPE_MVT_SORTIE) == 0){
                     Ingredients ingredients = this.getIngredient(c);
-                    if(ingredients==null && !ingredients.getCategorieIngredient().equalsIgnoreCase(ConstanteSocobis.CATEGORIE_CONSOMMABLE)){
+                    if(ingredients!=null && !ingredients.getCategorieIngredient().equalsIgnoreCase(ConstanteSocobis.CATEGORIE_CONSOMMABLE)){
                         throw new Exception("Le mouvement source ne peut pas \u00EAtre vide");
                     }
                 }

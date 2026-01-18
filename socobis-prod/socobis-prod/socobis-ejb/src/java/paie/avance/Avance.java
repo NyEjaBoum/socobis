@@ -18,7 +18,7 @@ import paie.employe.EmployeComplet2;
  *
  * @author Sambatra Rakotondrainibe
  */
-public class Avance extends ClassEtat{
+public class    Avance extends ClassEtat{
     private String id;
     private String idpersonnel;
     private double montant;

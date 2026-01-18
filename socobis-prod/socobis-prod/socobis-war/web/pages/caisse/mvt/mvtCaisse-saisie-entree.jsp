@@ -46,6 +46,7 @@
         pageInsert.getFormu().getChamp("idmodepaiement").setLibelle("Mode de paiement");
         pageInsert.getFormu().getChamp("idDevise").setDefaut("AR");
         pageInsert.getFormu().getChamp("taux").setDefaut("1");
+        pageInsert.getFormu().getChamp("taux").setVisible(false);
         pageInsert.getFormu().getChamp("idVirement").setVisible(false);
         pageInsert.getFormu().getChamp("idVenteDetail").setVisible(false);
         pageInsert.getFormu().getChamp("idtraite").setVisible(false);

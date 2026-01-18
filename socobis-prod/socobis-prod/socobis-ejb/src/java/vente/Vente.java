@@ -23,7 +23,6 @@ import encaissement.EncaissementDetails;
 import faturefournisseur.FactureFournisseurCpl;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +39,7 @@ import prevision.PrevisionComplet;
 import produits.Ingredients;
 import stock.MvtStock;
 import stock.MvtStockFille;
+import user.UserEJB;
 import utilitaire.UtilDB;
 import utilitaire.Utilitaire;
 import utils.ConstanteEtatCustom;
@@ -67,14 +67,14 @@ public class Vente extends FactureCF {
     int modelivraison;
     String referencefact;
     String numerofacture;
-    String planpaiement;
+    String datePlan;
 
-    public String getPlanpaiement() {
-        return planpaiement;
+    public String getDatePlan() {
+        return datePlan;
     }
 
-    public void setPlanpaiement(String planpaiement) {
-        this.planpaiement = planpaiement;
+    public void setDatePlan(String datePlan) {
+        this.datePlan = datePlan;
     }
 
     public String getNumerofacture() {
@@ -168,79 +168,55 @@ public class Vente extends FactureCF {
         return ( Prevision ) mere.createObject(u, c);
     }
 
-public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
-    Vente venteComplet = this.getVenteWithMontant(c);
-    double montantTotal = venteComplet.getMontantttcAr();
+    public Prevision[] genererPrevisionMultiple(String u, Connection c) throws Exception{
+//        Prevision mere = new Prevision();
+//        Vente venteComplet = this.getVenteWithMontant(c);
+//        mere.setDaty(datyPrevu);
+//        mere.setCredit(venteComplet.getMontantttcAr());
+//        mere.setIdFacture(this.id);
+//        mere.setIdCaisse(ConstanteStation.idCaisse);
+//        mere.setIdDevise("AR");
+//        mere.setDesignation("Prevision rattachée au vente N : "+this.getId());
+//        mere.setIdTiers(this.getIdClient());
+//        return ( Prevision ) mere.createObject(u, c);
+        String[] dates = this.getDatePlan().split(";");
+        double sumPercent = 0;
 
-    if (this.planpaiement == null || this.planpaiement.isEmpty()) {
-        Prevision mere = new Prevision();
-        mere.setDaty(datyPrevu);
-        mere.setCredit(montantTotal);
-        mere.setIdFacture(this.id);
-        mere.setIdCaisse(ConstanteStation.idCaisse);
-        mere.setIdDevise("AR");
-        mere.setDesignation("Prévision rattachée à la vente N : " + this.getId());
-        mere.setIdTiers(this.getIdClient());
-        Prevision result = (Prevision) mere.createObject(u, c);
-        return new Prevision[]{result};
+        Prevision [] results = new Prevision[dates.length];
+        int divisor = dates.length;
+        int i =0;
+        for (String string: dates){
+
+            Prevision mere = new Prevision();
+            Vente venteComplet = this.getVenteWithMontant(c);
+            Date date = Utilitaire.stringDate(string);
+            mere.setDaty(date);
+
+            mere.setCredit(venteComplet.getMontantttcAr()/divisor);
+            mere.setIdFacture(this.id);
+            mere.setIdCaisse(ConstanteStation.idCaisse);
+            mere.setIdDevise("AR");
+            mere.setDesignation("Prevision rattachée au vente N : "+this.getId());
+            mere.setIdTiers(this.getIdClient());
+
+
+            results[i] = (Prevision) mere.createObject(u, c);
+            i++;
+        }
+        return results;
     }
 
-    String[] paiements = this.planpaiement.split(";");
-    Prevision[] previsions = new Prevision[paiements.length];
-
-    boolean isLineaire = true;
-    double totalPourcentage = 0;
-    for (String paiement : paiements) {
-        if (paiement.contains(":")) {
-            isLineaire = false;
-            String[] parts = paiement.split(":");
-            if (parts.length == 2) {
-                totalPourcentage += Double.parseDouble(parts[1].trim());
+    public Map<String,String> castDatePlan() throws Exception {
+        String [] delimited = this.getDatePlan().split(";");
+        Map<String,String> map = new HashMap<>();
+        for(String s: delimited){
+            String[] separatedDateAndValue = s.split(":");
+            if(separatedDateAndValue.length!=2){
+                throw new Exception("Veuillez bien remplir le champ sur :"+s);
             }
+            map.put(separatedDateAndValue[0],separatedDateAndValue[1]);
         }
-    }
-
-    for (int i = 0; i < paiements.length; i++) {
-        String paiement = paiements[i].trim();
-        java.sql.Date dateEcheance;
-        double montant;
-
-        if (paiement.contains(":")) {
-            String[] parts = paiement.split(":");
-            String dateStr = parts[0].trim();
-            String pourcentageStr = parts[1].trim();
-            dateEcheance = convertirDate(dateStr);
-            double pourcentage = Double.parseDouble(pourcentageStr);
-            montant = (montantTotal * pourcentage) / 100.0;
-        } else {
-            dateEcheance = convertirDate(paiement);
-            montant = montantTotal / paiements.length;
-        }
-
-        Prevision prevision = new Prevision();
-        prevision.setDaty(dateEcheance);
-        prevision.setCredit(montant);
-        prevision.setIdFacture(this.id);
-        prevision.setIdCaisse(ConstanteStation.idCaisse);
-        prevision.setIdDevise("AR");
-        prevision.setDesignation("Prévision vente " + this.getId() + " - Échéance " + (i+1) + "/" + paiements.length + (isLineaire ? " (linéaire)" : ""));
-        prevision.setIdTiers(this.getIdClient());
-        previsions[i] = (Prevision) prevision.createObject(u, c);
-    }
-
-    return previsions;
-}
-
-    // Dans utilitaire.Utilitaire.java, ajoutez :
-    public java.sql.Date convertirDate(String dateStr) throws Exception {
-        try {
-            // Format: "07/12/2025" (dd/MM/yyyy)
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            java.util.Date date = sdf.parse(dateStr);
-            return new java.sql.Date(date.getTime());
-        } catch (Exception e) {
-            throw new Exception("Format de date invalide: " + dateStr + ". Format attendu: JJ/MM/AAAA");
-        }
+        return map;
     }
     
     public Vente getVenteWithMontant(Connection c) throws Exception{
@@ -434,33 +410,6 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
         genererEcritureEncaissement(u, c);
     }
 
-    // Variante pour flux "Changer et payer" avec montant TTC explicite
-    public void payerAvecTTC(String u, Connection c, double montantTtcForce, double totalReversed) throws Exception {
-        if(this.getEtat() < ConstanteEtat.getEtatValider()){
-            throw new Exception("Impossible d encaisser une vente non validée");
-        }
-        if(isLivre()){
-            this.updateEtat(ConstanteEtatCustom.PAYE_LIVRE, this.getId(), c);
-        }
-        else{
-            this.updateEtat(ConstanteEtatCustom.PAYE_NON_LIVRE, this.getId(), c);
-        }
-        if(totalReversed > 0){
-            MvtCaisse mvt = new MvtCaisse();
-            mvt.setDebit(totalReversed);
-            mvt.setIdCaisse(getCaisse(c).getId());
-            mvt.setDaty(utilitaire.Utilitaire.dateDuJourSql());
-            mvt.setDesignation("Annulation encaissement pour " + this.getDesignation());
-            mvt.setIdOrigine(this.getId());
-            mvt.createObject(u, c);
-            mvt.validerObject(u, c);
-        }
-        if(totalReversed > 0){
-            genererEcritureAnnulationEncaissement(u, c, totalReversed);
-        }
-        genererEcritureEncaissementAvecTTC(u, c, montantTtcForce);
-    }
-
     public void livrer(String u,Connection c) throws Exception{
         if(this.getEtat() < ConstanteEtat.getEtatValider()){
             throw new Exception("Impossible de livrer une vente non validée");
@@ -502,6 +451,42 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
             }
         }
     }
+
+    public void controlleEchange(ClassMAPTable[]fille,Connection c) throws Exception {
+        try{
+            if(c==null){
+                c=new UtilDB().GetConn();
+            }
+            VenteDetails[] venteDetails = getVenteDetailsTenaIzy(c);
+            double montantInitial = 0;
+            double montantNew = 0;
+            for(VenteDetails venteDetailsTemp: venteDetails){
+                montantInitial+=venteDetailsTemp.calculTTC();
+            }
+            for (ClassMAPTable cls : fille){
+                VenteDetails temp = (VenteDetails) cls;
+                montantNew+=temp.calculTTC();
+            }
+            for(VenteDetails venteDetailsTemp: venteDetails){
+                Ingredients initial = (Ingredients) new Ingredients().getById(venteDetailsTemp.getIdProduit(),"AS_INGREDIENTS",null);
+                if(initial.getChangeable()==0){
+                    throw new Exception("Echange impossible car changeable = "+0);
+                }
+                else if(initial.getChangeable()==1){
+                    if(montantInitial>montantNew){
+                        throw new Exception("Echange impossible car montant inferieur avec changeable =  "+ 1);
+                    }
+                }
+            }
+
+        }
+        finally {
+            if(c != null){
+                c.close();
+            }
+        }
+    }
+
     
     @Override
     public void changeState(String acte, String u,Connection con)throws Exception{
@@ -548,8 +533,7 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
 
     public Caisse getCaisse(Connection c) throws Exception {
         Caisse caisse = new Caisse();
-        // Dans ce contexte, on prend n'importe quelle caisse disponible, sans filtrer par magasin
-        Caisse[] caisses = (Caisse[]) CGenUtil.rechercher(caisse, null, null, c, " ");
+        Caisse[] caisses = (Caisse[]) CGenUtil.rechercher(caisse, null, null, c, " and idMagasin = '"+this.getIdMagasin()+"'");
         if (caisses.length > 0) {
             return caisses[0];
         }
@@ -581,7 +565,7 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
 
     @Override
     public void controlerUpdate(Connection c) throws Exception {
-        super.controlerUpdate(c);
+//        super.controlerUpdate(c);
 
     }
 
@@ -595,6 +579,28 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
         }
     }
 
+    public MvtCaisse encaisser(UserEJB user) throws Exception {
+        try {
+
+            VenteLib venteLib = (VenteLib) new VenteLib().getById(this.getId(), "VENTE_CPL", null);
+
+            MvtCaisse mvt = new MvtCaisse();
+            mvt.setIdOrigine(venteLib.getId());
+            mvt.setCompte(venteLib.getCompte());
+            mvt.setCredit(venteLib.getMontantreste());
+            mvt.setDaty(venteLib.getDaty());
+            mvt.setIdTiers(venteLib.getTiers());
+            mvt.setDesignation("Paiement de la facture : " + venteLib.getId());
+            MvtCaisse valid = (MvtCaisse) user.createObject(mvt);
+            user.updateObject(valid);
+            user.validerObject(valid);
+            return valid;
+        } finally {
+
+        }
+
+    }
+
     public VenteDetailsLib[] getVenteDetails(Connection c) throws Exception {
             VenteDetailsLib obj = new VenteDetailsLib();
             obj.setNomTable("VENTE_DETAILS_CPL");
@@ -604,6 +610,17 @@ public Prevision[] genererPrevisions(String u, Connection c) throws Exception {
                 return objs;
             }
             return null;
+    }
+
+    public VenteDetails[] getVenteDetailsTenaIzy(Connection c) throws Exception {
+        VenteDetails obj = new VenteDetails();
+        obj.setNomTable("VENTE_DETAILS");
+        obj.setIdVente(this.getId());
+        VenteDetails[] objs = (VenteDetails[]) CGenUtil.rechercher(obj, null, null, c, " ");
+        if (objs.length > 0) {
+            return objs;
+        }
+        return null;
     }
 protected EncaissementDetails [] generateDetailsEncaissements (Connection c ) throws Exception{
        VenteDetailsLib[] vd= this.getVenteDetails(c);
@@ -638,65 +655,12 @@ protected EncaissementDetails [] generateDetailsEncaissements (Connection c ) th
         return mvtf;
     }
 
-    protected MvtStockFille[] createMvtStockFillesReversed(Connection c) throws Exception {
-        VenteDetails[] tsd = this.getVenteDetailsNonGrp(c);
-        if (tsd == null || tsd.length == 0) {
-            return new MvtStockFille[0];
-        }
-
-        java.util.Map<String, Double> quantitesParProduit = new java.util.HashMap<String, Double>();
-
-        for (int i = 0; i < tsd.length; i++) {
-            String idProduit = tsd[i].getIdProduit();
-            if (idProduit == null) {
-                continue;
-            }
-            idProduit = idProduit.trim();
-            if (idProduit.length() == 0) {
-                continue;
-            }
-
-            double qte = tsd[i].getQte();
-            Double existant = quantitesParProduit.get(idProduit);
-            if (existant == null) {
-                existant = 0d;
-            }
-            quantitesParProduit.put(idProduit, existant + qte);
-        }
-
-        if (quantitesParProduit.isEmpty()) {
-            return new MvtStockFille[0];
-        }
-
-        MvtStockFille[] mvtf = new MvtStockFille[quantitesParProduit.size()];
-        int index = 0;
-        for (java.util.Map.Entry<String, Double> entry : quantitesParProduit.entrySet()) {
-            MvtStockFille msf = new MvtStockFille();
-            msf.setIdProduit(entry.getKey());
-            msf.setEntree(entry.getValue());
-            mvtf[index] = msf;
-            index++;
-        }
-        System.out.println("DEBUG: taille du mvtf " + mvtf.length);
-        return mvtf;
-    }
-
     protected MvtStock createMvtStock() throws Exception {
         MvtStock md = new MvtStock();
         md.setDaty(this.getDaty());
         md.setDesignation("Vente lubrifiant : " + this.getDesignation());
         md.setIdTransfert(this.getId());
         md.setIdTypeMvStock(ConstanteStation.TYPEMVTSTOCKSORTIE);
-        md.setIdMagasin(this.getIdMagasin());
-        return md;
-    }
-
-    protected MvtStock createMvtStockAnnulation() throws Exception {
-        MvtStock md = new MvtStock();
-        md.setDaty(utilitaire.Utilitaire.dateDuJourSql());
-        md.setDesignation("Annulation vente : " + this.getDesignation());
-        md.setIdTransfert(this.getId());
-        md.setIdTypeMvStock(ConstanteStation.TYPEMVTSTOCKENTREE);
         md.setIdMagasin(this.getIdMagasin());
         return md;
     }
@@ -753,9 +717,12 @@ protected EncaissementDetails [] generateDetailsEncaissements (Connection c ) th
                 listeFille[i].updateToTableWithHisto(u,c);
             }
             genererEcriture(u, c);
+            if(this.getDatePlan()!=null){
+                genererPrevisionMultiple(u,c);
+            }
             //createMvtStockSortie(u, c);
-            if(this.getEstPrevu() == 0||this.getDatyPrevu()!=null){
-                genererPrevisions(u, c);
+            else if(this.getEstPrevu() == 0||this.getDatyPrevu()!=null){
+                genererPrevision(u, c);
             }
 
             return this;
@@ -840,139 +807,6 @@ protected EncaissementDetails [] generateDetailsEncaissements (Connection c ) th
             compta[1].setCompte(this.getCompte());
 //            compta[i].setDebit((montantHT-retenue) * ((this.getTva()/100)));
             compta[1].setCredit(ventes[0].getMontantttc());
-            
-        } catch(Exception e){
-            throw e;
-        } finally {
-            if(canClose){
-                c.close();
-            }
-        }
-        return compta;
-    }
-
-    // Copie pour flux "Changer et payer" avec montant TTC imposé
-    public void genererEcritureEncaissementAvecTTC(String u, Connection c, double montantTtcForce) throws Exception{
-        ComptaEcriture mere = new ComptaEcriture();
-        Date dateDuJour = utilitaire.Utilitaire.dateDuJourSql();
-        int exercice = utilitaire.Utilitaire.getAnnee(daty);
-        mere.setDaty(dateDuJour);
-        mere.setDesignation(this.getDesignation());
-        mere.setExercice(""+exercice);
-        mere.setDateComptable(this.getDaty());
-        mere.setJournal(ConstanteStation.JOURNALVENTE);
-        mere.setOrigine(this.getId());
-        mere.setIdobjet(this.getId());
-        mere.createObject(u, c);
-        ComptaSousEcriture[] filles = this.genererSousEcritureEncaissementAvecTTC(u,c, montantTtcForce);
-        for(int i=0; i<filles.length; i++){
-            filles[i].setIdMere(mere.getId());
-            filles[i].setExercice(exercice);
-            filles[i].setDaty(this.getDaty());
-            filles[i].setJournal(ConstanteStation.JOURNALVENTE);
-            
-            if(filles[i].getDebit()>0 || filles[i].getCredit()>0) filles[i].createObject(u, c);
-        }
-    }
-
-    // Copie pour flux "Changer et payer" avec montant TTC imposé
-    public ComptaSousEcriture[] genererSousEcritureEncaissementAvecTTC(String refUser,Connection c, double montantTtcForce) throws Exception{
-        ComptaSousEcriture[] compta={};
-        boolean canClose=false;
-        try{
-            if(c==null){
-                c=new UtilDB().GetConn();
-                canClose=true;
-            }
-            Vente[] ventes = (Vente[]) CGenUtil.rechercher(new Vente("VENTE_MERE_MONTANT"), null, null, c, " and id = '"+this.getId()+"'");
-            if(ventes.length<1) throw new Exception("Facture mere Introuvable");
-            this.setCompte(getClient(c).getCompte());
-
-            double montant = montantTtcForce;
-
-            compta = new ComptaSousEcriture[2];
-            
-            compta[0]=new ComptaSousEcriture();
-            compta[0].setLibellePiece(this.getDesignation());
-            compta[0].setRemarque(this.getDesignation());
-            compta[0].setCompte(getCaisse(c).getCompte());
-            compta[0].setDebit(montant);
-
-            MvtCaisse mvt= new MvtCaisse();
-            mvt.setCredit(montant);
-            mvt.setIdCaisse(getCaisse(c).getId());
-            mvt.setDaty(utilitaire.Utilitaire.dateDuJourSql());
-            mvt.setDesignation( "mvt pour"+ this.getDesignation());
-            mvt.setIdOrigine(this.getId());
-            mvt.createObject(refUser, c);
-            mvt.validerObject(refUser, c);
-            
-            compta[1]=new ComptaSousEcriture();
-            compta[1].setLibellePiece("Encaissement Client "+ventes[0].getClientlib());
-            compta[1].setRemarque("Encaissement Client "+ventes[0].getClientlib());
-            compta[1].setCompte(this.getCompte());
-            compta[1].setCredit(montant);
-            
-        } catch(Exception e){
-            throw e;
-        } finally {
-            if(canClose){
-                c.close();
-            }
-        }
-        return compta;
-    }
-
-    // Pour l'annulation des encaissements dans "Changer et payer"
-    public void genererEcritureAnnulationEncaissement(String u, Connection c, double montantReversed) throws Exception{
-        ComptaEcriture mere = new ComptaEcriture();
-        Date dateDuJour = utilitaire.Utilitaire.dateDuJourSql();
-        int exercice = utilitaire.Utilitaire.getAnnee(daty);
-        mere.setDaty(dateDuJour);
-        mere.setDesignation("Annulation encaissement " + this.getDesignation());
-        mere.setExercice(""+exercice);
-        mere.setDateComptable(this.getDaty());
-        mere.setJournal(ConstanteStation.JOURNALVENTE);
-        mere.setOrigine(this.getId());
-        mere.setIdobjet(this.getId());
-        mere.createObject(u, c);
-        ComptaSousEcriture[] filles = genererSousEcritureAnnulationEncaissement(u,c, montantReversed);
-        for(int i=0; i<filles.length; i++){
-            filles[i].setIdMere(mere.getId());
-            filles[i].setExercice(exercice);
-            filles[i].setDaty(this.getDaty());
-            filles[i].setJournal(ConstanteStation.JOURNALVENTE);
-            
-            if(filles[i].getDebit()>0 || filles[i].getCredit()>0) filles[i].createObject(u, c);
-        }
-    }
-
-    // Pour l'annulation des encaissements dans "Changer et payer"
-    public ComptaSousEcriture[] genererSousEcritureAnnulationEncaissement(String refUser,Connection c, double montantReversed) throws Exception{
-        ComptaSousEcriture[] compta={};
-        boolean canClose=false;
-        try{
-            if(c==null){
-                c=new UtilDB().GetConn();
-                canClose=true;
-            }
-            Vente[] ventes = (Vente[]) CGenUtil.rechercher(new Vente("VENTE_MERE_MONTANT"), null, null, c, " and id = '"+this.getId()+"'");
-            if(ventes.length<1) throw new Exception("Facture mere Introuvable");
-            this.setCompte(getClient(c).getCompte());
-
-            compta = new ComptaSousEcriture[2];
-            
-            compta[0]=new ComptaSousEcriture();
-            compta[0].setLibellePiece("Annulation encaissement " + this.getDesignation());
-            compta[0].setRemarque("Annulation encaissement " + this.getDesignation());
-            compta[0].setCompte(getCaisse(c).getCompte());
-            compta[0].setCredit(montantReversed);  // Crédit caisse pour annulation
-            
-            compta[1]=new ComptaSousEcriture();
-            compta[1].setLibellePiece("Annulation encaissement Client "+ventes[0].getClientlib());
-            compta[1].setRemarque("Annulation encaissement Client "+ventes[0].getClientlib());
-            compta[1].setCompte(this.getCompte());
-            compta[1].setDebit(montantReversed);  // Débit client pour annulation
             
         } catch(Exception e){
             throw e;
@@ -1383,33 +1217,6 @@ protected EncaissementDetails [] generateDetailsEncaissements (Connection c ) th
             }
         }
         return mvt;
-    }
-
-    public void annulerVenteCustom(String u, Connection c, String idMagasinAnnulation) throws Exception {
-        inverserMouvementsStock(u, c, idMagasinAnnulation);
-        annulerEncaissementsLies(u, c);
-    }
-
-    private void inverserMouvementsStock(String u, Connection c, String idMagasinAnnulation) throws Exception {
-        MvtStock mvt = this.createMvtStockAnnulation();
-        if (idMagasinAnnulation == null || idMagasinAnnulation.trim().isEmpty()) {
-            throw new Exception("Champ magasin obligatoire pour l'annulation de la vente " + this.getId());
-        }
-        mvt.setIdMagasin(idMagasinAnnulation);
-        MvtStockFille[] mvtf = this.createMvtStockFillesReversed(c);
-        System.out.println("DEBUG dans inverser: mvtf : "+ mvtf.length);
-        mvt.setFille(mvtf);
-        mvt.createObject(u, c);
-        mvt.validerObject(u, c);
-    }
-
-    private void annulerEncaissementsLies(String u, Connection c) throws Exception {
-        Encaissement enc = new Encaissement();
-        Encaissement[] encs = (Encaissement[]) CGenUtil.rechercher(enc, "SELECT * FROM ENCAISSEMENT WHERE IDORIGINE='" + this.getId() + "'", c);
-        for(Encaissement e : encs){
-            e.setEtat(0); // cancel
-            e.updateToTable(u, c);
-        }
     }
 
         

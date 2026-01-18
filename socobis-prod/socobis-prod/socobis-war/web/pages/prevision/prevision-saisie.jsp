@@ -25,6 +25,7 @@
             pageInsert.getFormu().getChamp("credit").setLibelle("recette");
             pageInsert.getFormu().getChamp("idDevise").setDefaut("AR");
             pageInsert.getFormu().getChamp("taux").setDefaut("1");
+            pageInsert.getFormu().getChamp("taux").setVisible(false);
             pageInsert.getFormu().getChamp("compte").setLibelle("Compte de regroupement");
             pageInsert.getFormu().getChamp("debit").setVisible(true);
             pageInsert.getFormu().getChamp("idCaisse").setVisible(false);

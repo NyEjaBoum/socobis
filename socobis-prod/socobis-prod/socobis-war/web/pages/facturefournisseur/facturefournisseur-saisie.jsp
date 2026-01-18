@@ -214,7 +214,7 @@
                     out.println(pi.getFormufle().getHtmlTableauInsert());
                 %>
             </div>
-
+            <input name="planDate" type="text" >
             <input name="acte" type="hidden" id="nature" value="insert">
             <input name="bute" type="hidden" id="bute" value="<%= butApresPost %>">
             <input name="classe" type="hidden" id="classe" value="<%= classeMere %>">

@@ -61,8 +61,18 @@ public class Ingredients extends ClassMAPTable {
     String idmagasin;
     String parfums;
 
+    public void setChangeable(int changeable) {
+        this.changeable = changeable;
+    }
+
+    int changeable;
+
     public String getParfums() {
         return parfums;
+    }
+
+    public int getChangeable(){
+        return this.changeable;
     }
 
     public void setParfums(String parfums) {

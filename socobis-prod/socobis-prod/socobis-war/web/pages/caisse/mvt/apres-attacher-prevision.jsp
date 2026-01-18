@@ -7,17 +7,23 @@
 
 <%@page import="user.UserEJB"%>
 <%@page import="prevision.PrevisionComplet"%>
+<%@ page import="java.util.Enumeration" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getAttribute("u");
         String lien = (String) request.getParameter("lien");
         String id = (String) request.getParameter("idPrevision");
         PrevisionComplet prevision = new PrevisionComplet();
-        System.out.println("idPrevision ================ "+id);
+        System.out.println("ITo id prevision:"+id);
         prevision.setId(id);
         String[] ids = request.getParameterValues("ids");
-        for(String id2 : ids){
-            System.out.println("IDS ::::: "+id2);
+        Enumeration<String> parameterNames = request.getParameterNames();
+//        while (parameterNames.hasMoreElements()) {
+//            String value = parameterNames.nextElement();
+//            System.out.println(value);
+//        }
+        for (String idss : ids){
+            System.out.println(idss);
         }
         prevision.attacherFacture(ids, u.getUser().getTuppleID(), null);
 %>

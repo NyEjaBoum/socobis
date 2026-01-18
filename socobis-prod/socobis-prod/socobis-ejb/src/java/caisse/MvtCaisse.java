@@ -10,6 +10,7 @@ import bean.CGenUtil;
 import bean.ClassEtat;
 import bean.ClassMAPTable;
 import bean.UnionIntraTable;
+import change.TauxDeChange;
 import client.Client;
 import constante.ConstanteEtat;
 
@@ -32,6 +33,7 @@ import pertegain.Tiers;
 import prevision.MvtCaissePrevision;
 import prevision.Prevision;
 import prevision.PrevisionComplet;
+import user.UserEJB;
 import utilitaire.UtilDB;
 import utilitaire.Utilitaire;
 import utils.ConstanteAsync;
@@ -331,6 +333,9 @@ public class MvtCaisse extends ClassEtat{
         }
 
         ReportCaisse report = this.getReportCaisse(c);
+        String dateFormat = Utilitaire.format(this.getDaty());
+        System.out.println(dateFormat);
+        this.setTaux(TauxDeChange.getLastTaux(null,dateFormat,this.getIdDevise()));
         if( report == null ){
             report=new ReportCaisse();
             Caisse caisse = new Caisse();
@@ -371,6 +376,7 @@ public class MvtCaisse extends ClassEtat{
         ArrayList<MvtCaissePrevision> attachements = new ArrayList<MvtCaissePrevision>();
         double reste = this.getMontantMouvement();
         double valeur=reste;
+        double taux = 1;
         int i=0;
         for(PrevisionComplet prevision : listePrevision){
             if(prevision.getEcart()>0&&i<listePrevision.length-1){
@@ -411,6 +417,8 @@ public class MvtCaisse extends ClassEtat{
         if(this.isDepense()) return this.getDebit()*this.getTaux();
         return this.getCredit()*this.getTaux();
     }
+
+
 
 
     public MvtCaisse attacherPrevision(String idPrevision ,String u,Connection c)throws Exception {
@@ -468,93 +476,98 @@ public class MvtCaisse extends ClassEtat{
     
     @Override
     public ClassMAPTable validerObject(String u, Connection c) throws Exception{
-        if(this.getIdOrigine()!=null &&this.getIdOrigine().startsWith("VNT") && this.getIdOrigine().split(";;").length<=1){
-            VenteLib vente = getVenteLib(c);
-            // if(vente.getMontantreste()<this.getCredit()) throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture client!");
-        } else if(this.getIdOrigine()!=null && this.getIdOrigine().startsWith("AVRFC")){
-            AvoirFCLib avoirFC = this.getAvoirFC(c);
-            // if(avoirFC.getResteapayer()<this.getDebit()) throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture Avoir!");
-        }else if(this.getIdOrigine()!=null &&this.getIdOrigine().startsWith("VNT") && this.getIdOrigine().split(";;").length>1){
-            String [] ids = this.getIdOrigine().split(";;");
-            VenteLib vente = Vente.genererVenteClient(ids,c);
-            assert vente != null;
-            // if(vente.getMontantreste()<this.getCredit()) throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture client!");
-        }
 
-        double montant = this.getMontantMouvement();
-        LiaisonPaiement [] liaisonPaiements = (LiaisonPaiement[]) CGenUtil.rechercher(new LiaisonPaiement(), null, null, c, " and id1 = '"+this.getId()+"'");
-        if(this.getIdOrigine()!=null && this.getIdOrigine().compareToIgnoreCase("")!=0 && liaisonPaiements.length<=0){
-            String [] origines = this.getIdOrigine().split(";;");
-            if(origines.length>0){
-                for (int i = 0; i < origines.length; i++) {
-                    if(this.getIdOrigine().startsWith("VNT")){
-                        VenteLib vente = (VenteLib) new VenteLib().getById(origines[i],"VENTE_CPL",c);
-                        montant -= vente.getMontantreste();
-                        LiaisonPaiement paiement = new LiaisonPaiement();
-                        paiement.setId1(this.getId());
-                        paiement.setId2(origines[i]);
-                        if(montant<=0){
-                            paiement.setMontant(vente.getMontantreste()+montant);
-                            paiement.createObject(u,c);
-                            paiement.validerObject(u,c);
+
+            if (this.getIdOrigine() != null && this.getIdOrigine().startsWith("VNT") && this.getIdOrigine().split(";;").length <= 1) {
+                VenteLib vente = getVenteLib(c);
+                if (vente.getMontantreste() < this.getCredit())
+                    throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture client!");
+            } else if (this.getIdOrigine() != null && this.getIdOrigine().startsWith("AVRFC")) {
+                AvoirFCLib avoirFC = this.getAvoirFC(c);
+                if (avoirFC.getResteapayer() < this.getDebit())
+                    throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture Avoir!");
+            } else if (this.getIdOrigine() != null && this.getIdOrigine().startsWith("VNT") && this.getIdOrigine().split(";;").length > 1) {
+                String[] ids = this.getIdOrigine().split(";;");
+                VenteLib vente = Vente.genererVenteClient(ids, c);
+                assert vente != null;
+                if (vente.getMontantreste() < this.getCredit())
+                    throw new Exception("Le montant saisi ne doit pas etre superieur au montant reste de la facture client!");
+            }
+
+            double montant = this.getMontantMouvement();
+            LiaisonPaiement[] liaisonPaiements = (LiaisonPaiement[]) CGenUtil.rechercher(new LiaisonPaiement(), null, null, c, " and id1 = '" + this.getId() + "'");
+            if (this.getIdOrigine() != null && this.getIdOrigine().compareToIgnoreCase("") != 0 && liaisonPaiements.length <= 0) {
+                String[] origines = this.getIdOrigine().split(";;");
+                if (origines.length > 0) {
+                    for (int i = 0; i < origines.length; i++) {
+                        if (this.getIdOrigine().startsWith("VNT")) {
+                            VenteLib vente = (VenteLib) new VenteLib().getById(origines[i], "VENTE_CPL", c);
+                            montant -= vente.getMontantreste();
+                            LiaisonPaiement paiement = new LiaisonPaiement();
+                            paiement.setId1(this.getId());
+                            paiement.setId2(origines[i]);
+                            if (montant <= 0) {
+                                paiement.setMontant(vente.getMontantreste() + montant);
+                                paiement.createObject(u, c);
+                                paiement.validerObject(u, c);
+                                break;
+                            } else {
+                                paiement.setMontant(vente.getMontantreste());
+                                paiement.createObject(u, c);
+                                paiement.validerObject(u, c);
+                            }
+                        } else if (this.getIdOrigine().startsWith("FCF")) {
+                            FactureFournisseurCpl fc = (FactureFournisseurCpl) new FactureFournisseurCpl().getById(origines[i], "FACTUREFOURNISSEURCPL", c);
+                            montant -= fc.getMontantreste();
+                            LiaisonPaiement paiement = new LiaisonPaiement();
+                            paiement.setId1(this.getId());
+                            paiement.setId2(origines[i]);
+                            if (montant <= 0) {
+                                paiement.setMontant(fc.getMontantreste() + montant);
+                                paiement.createObject(u, c);
+                                paiement.validerObject(u, c);
+                                break;
+                            } else {
+                                paiement.setMontant(fc.getMontantreste());
+                                paiement.createObject(u, c);
+                                paiement.validerObject(u, c);
+                            }
+                        } else if (this.getIdOrigine().startsWith("TR") && this.getTraite() != null) {
+                            montant = this.traite.getMontant();
+                            LiaisonPaiement paiement = new LiaisonPaiement();
+                            paiement.setId1(this.getId());
+                            paiement.setId2(origines[i]);
+                            paiement.setMontant(montant);
+                            paiement.createObject(u, c);
+                            paiement.validerObject(u, c);
                             break;
-                        }else{
-                            paiement.setMontant(vente.getMontantreste());
-                            paiement.createObject(u,c);
-                            paiement.validerObject(u,c);
                         }
-                    }else if(this.getIdOrigine().startsWith("FCF")){
-                        FactureFournisseurCpl fc = (FactureFournisseurCpl) new FactureFournisseurCpl().getById(origines[i],"FACTUREFOURNISSEURCPL",c);
-                        montant -= fc.getMontantreste();
-                        LiaisonPaiement paiement = new LiaisonPaiement();
-                        paiement.setId1(this.getId());
-                        paiement.setId2(origines[i]);
-                        if(montant<=0){
-                            paiement.setMontant(fc.getMontantreste()+montant);
-                            paiement.createObject(u,c);
-                            paiement.validerObject(u,c);
-                            break;
-                        }else{
-                            paiement.setMontant(fc.getMontantreste());
-                            paiement.createObject(u,c);
-                            paiement.validerObject(u,c);
-                        }
-                    } else if(this.getIdOrigine().startsWith("TR") && this.getTraite()!=null){
-                        montant = this.traite.getMontant();
-                        LiaisonPaiement paiement = new LiaisonPaiement();
-                        paiement.setId1(this.getId());
-                        paiement.setId2(origines[i]);
-                        paiement.setMontant(montant);
-                        paiement.createObject(u,c);
-                        paiement.validerObject(u,c);
-                        break;
                     }
                 }
             }
-        }
-        super.validerObject(u, c);
-        if(this.getIdOrigine()!=null&&this.getIdOrigine().compareToIgnoreCase("")!=0&&this.getIdOrigine().startsWith("VNT"))
-        {
-            String [] ids = this.getIdOrigine().split(";;");
-            VenteLib vente = Vente.genererVenteClient(ids,c);
-            LiaisonPaiement li = new LiaisonPaiement();
-            LiaisonPaiement[] bls = (LiaisonPaiement[]) CGenUtil.rechercher(li, null, null,c, " and id2 in ("+Utilitaire.tabToString(ids, "'", ",")+" ) ");
-            for (int i = 0; i < bls.length; i++) {
-                bls[i].validerObject(u, c);
+            super.validerObject(u, c);
+            if (this.getIdOrigine() != null && this.getIdOrigine().compareToIgnoreCase("") != 0 && this.getIdOrigine().startsWith("VNT")) {
+                String[] ids = this.getIdOrigine().split(";;");
+                VenteLib vente = Vente.genererVenteClient(ids, c);
+                LiaisonPaiement li = new LiaisonPaiement();
+                LiaisonPaiement[] bls = (LiaisonPaiement[]) CGenUtil.rechercher(li, null, null, c, " and id2 in (" + Utilitaire.tabToString(ids, "'", ",") + " ) ");
+                for (int i = 0; i < bls.length; i++) {
+                    bls[i].validerObject(u, c);
+                }
             }
-            MvtCaissePrevision[] lienMvtPrev = this.attacherPrevisionAutomatique(u, c);
-            for(MvtCaissePrevision mvt:lienMvtPrev)
-            {
-                mvt.createObject(u, c);
-            }
+        System.out.println("Mandeha ve le MvtCaisse");
+        MvtCaissePrevision[] lienMvtPrev = this.attacherPrevisionAutomatique(u, c);
+        for (MvtCaissePrevision mvt : lienMvtPrev) {
+            mvt.createObject(u, c);
         }
-        if(this.getDebit()>0){
-            genererEcritureDecaissement(u, c);
-        }else if(this.getCredit()>0){
+            if (this.getDebit() > 0) {
+                genererEcritureDecaissement(u, c);
+            } else if (this.getCredit() > 0) {
 
-            genererEcritureEncaissement(u, c);
-        }
-        return this;
+                genererEcritureEncaissement(u, c);
+            }
+            return this;
+
     }
     
     public void genererEcritureDecaissement(String u, Connection c) throws Exception{

@@ -43,10 +43,10 @@
         pr.setApres("paie/avance/avance-liste.jsp");
         String[] colSomme = null;
         pr.creerObjetPage(libEntete, colSomme);
-       String[] lienTableau = {pr.getLien() + "?but=paie/avance/avance-fiche.jsp"};
-       String colonneLien[] = {"id"};
-       pr.getTableau().setLien(lienTableau);
-       pr.getTableau().setColonneLien(colonneLien);
+           String[] lienTableau = {pr.getLien() + "?but=paie/avance/avance-fiche.jsp"};
+           String colonneLien[] = {"id"};
+           pr.getTableau().setLien(lienTableau);
+           pr.getTableau().setColonneLien(colonneLien);
 
         String libEnteteAffiche[] =  {"ID","Date de l'avance","Type de l'avance", "Personnel","Matricule", "Montant(Ar)","Int&eacute;r&ecirc;t (%)","Nombre de remboursement","&Eacute;tat"};
         pr.getTableau().setLibelleAffiche(libEnteteAffiche);

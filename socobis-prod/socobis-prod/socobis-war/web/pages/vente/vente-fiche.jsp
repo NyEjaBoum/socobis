@@ -15,6 +15,7 @@
         //Information sur les navigations via la page
         String lien = (String) session.getValue("lien");
         String pageModif = "vente/vente-modif.jsp";
+        String pageEchange = "vente/vente-details-echange.jsp";
         String classe = "vente.Vente";
         String pageActuel = "vente/vente-fiche.jsp";
 
@@ -232,4 +233,3 @@
     } catch (Exception e) {
         e.printStackTrace();
     }%>
-    

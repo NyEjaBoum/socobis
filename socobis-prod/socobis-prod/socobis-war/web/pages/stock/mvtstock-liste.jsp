@@ -104,14 +104,6 @@
             out.println(pr.getTableau().getHtml());
         %>
     </section>
-
-    <!-- A ajouter a tous les pages -->
-    <script>
-        document.querySelectorAll("button.more_info").forEach(el => {
-            el.setAttribute("type", "button");
-        })
-    </script>
-    <!-- fin ajout -->
 </div>
     <%
     }catch(Exception e){

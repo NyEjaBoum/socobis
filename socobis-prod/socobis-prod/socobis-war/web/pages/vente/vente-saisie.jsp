@@ -39,7 +39,7 @@
         pi.setLien((String) session.getValue("lien"));
         Liste[] liste = new Liste[4];
         liste[0] = new Liste("idMagasin",new magasin.Magasin(),"val","id");
-        //liste[1] = new Liste("idDevise",new caisse.Devise(),"val","id");
+//        liste[4] = new Liste("idDevise",new caisse.Devise(),"val","id");
         //liste[1].setDefaut("AR");
         liste[1] = new Liste("estPrevu");
         liste[1].makeListeOuiNon();
@@ -67,9 +67,11 @@
         }
 
         pi.getFormu().changerEnChamp(liste);
-        pi.getFormu().getChamp("idMagasin").setAutre("onchange=\"updateFille(event, 'formId')\"");
+//        pi.getFormu().getChamp("idMagasin").setAutre("onchange=\"updateFille(event, 'formId')\"");
         pi.getFormu().getChamp("etat").setVisible(false);
+        pi.getFormu().getChamp("datePlan").setLibelle("Plan de paiement avec date");
         pi.getFormu().getChamp("idOrigine").setVisible(false);
+        pi.getFormu().getChamp("idDevise").setVisible(false);
         pi.getFormu().getChamp("idMagasin").setLibelle("Point de vente");
         pi.getFormu().getChamp("designation").setLibelle("D&eacute;signation");
         pi.getFormu().getChamp("modepaiement").setLibelle("Mode de paiement");
@@ -78,14 +80,13 @@
         pi.getFormu().getChamp("fraislivraison").setLibelle("Frais de livraison (Par Kg)");
         pi.getFormu().getChamp("estPrevu").setLibelle("Est Pr&eacutevu");
         pi.getFormu().getChamp("datyPrevu").setLibelle("Date pr&eacute;visionnelle d'encaissement");
-        pi.getFormu().getChamp("planpaiement").setLibelle("Plan paiement");
         //pi.getFormu().getChamp("designation").setDefaut("Vente particulier du "+utilitaire.Utilitaire.dateDuJour());
         pi.getFormu().getChamp("remarque").setLibelle("Remarque");
         pi.getFormu().getChamp("daty").setLibelle("Date");
         pi.getFormu().getChamp("idClient").setLibelle("Client");
         pi.getFormu().getChamp("idClient").setPageAppelComplete("client.Client","id","Client","echeance","echeancefacture");
         pi.getFormu().getChamp("idClient").setPageAppelInsert("client/client-saisie.jsp","idClient;idClientlibelle;echeance","id;nom;echeancefacture");
-        pi.getFormu().getChamp("idClient").setAutre("onchange=\"updateFille(event, 'formId')\"");
+//        pi.getFormu().getChamp("idClient").setAutre("onchange=\"updateFille(event, 'formId')\"");
         pi.getFormu().getChamp("idDevise").setLibelle("Devise");
         pi.getFormu().getChamp("idDevise").setVisible(false);
         pi.getFormu().getChamp("echeancefacture").setAutre("onChange='changerValeur()'");
@@ -96,9 +97,9 @@
             pi.getFormu().getChamp("idclient").setDefaut(request.getParameter("idclient"));
 
         }
-        affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idProduit"),"annexe.ProduitLib","id","PRODUIT_LIB_MGA","puVente;puAchat;taux;val;compte;compte","pu;puAchat;tauxDeChange;designation;compte;comptelibelle");
+        //affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idProduit"),"annexe.ProduitLib","id","PRODUIT_LIB_MGA","puVente;puAchat;taux;val;compte;compte","pu;puAchat;tauxDeChange;designation;compte;comptelibelle");
         //affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idProduit"),"produits.IngredientsLib","id","ST_INGREDIENTSAUTOVENTE","pv;compte_vente;libelle","pu;compte;designation");
-        //affichage.Champ.setPageAppelCompleteAWhere(pi.getFormufle().getChampFille("idProduit"),"produits.IngredientVente","id","AS_INGREDIENT_VENTE_LIB","prixunitaire;compte_vente;libelle;idunite;idunitelib","pu;compte;designation;unite;unitelib","");
+        affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idProduit"),"produits.IngredientVente","id","AS_INGREDIENT_VENTE_LIB","prixunitaire;compte_vente;libelle;idunite;idunitelib","pu;compte;designation;unite;unitelib");
         double tva = 0.0;
         if (request.getParameter("onchanged") != null && request.getParameter("onchanged").equals("true")){
             String idmagasin = request.getParameter("idMagasin");
@@ -125,8 +126,7 @@
                 tva = c.getTaxe();
             }
             if(idmagasin!=null && c!=null){
-                //affichage.Champ.setPageAppelCompleteAWhere(pi.getFormufle().getChampFille("idProduit"),"produits.IngredientVente","id","AS_INGREDIENT_VENTE_LIB","prixunitaire;compte_vente;libelle;idunite;idunitelib","pu;compte;designation;unite;unitelib"," AND IDTYPECLIENT='"+c.getIdTypeClient()+"' AND IDMAGASIN='"+idmagasin+"'");
-                affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idProduit"),"annexe.ProduitLib","id","PRODUIT_LIB_MGA","puVente;puAchat;taux;val;compte;compte","pu;puAchat;tauxDeChange;designation;compte;comptelibelle");
+                affichage.Champ.setPageAppelCompleteAWhere(pi.getFormufle().getChampFille("idProduit"),"produits.IngredientVente","id","AS_INGREDIENT_VENTE_LIB","prixunitaire;compte_vente;libelle;idunite;idunitelib","pu;compte;designation;unite;unitelib"," AND IDTYPECLIENT='"+c.getIdTypeClient()+"' AND IDMAGASIN='"+idmagasin+"'");
             }
         }else{
             session.removeAttribute("idMagasin");

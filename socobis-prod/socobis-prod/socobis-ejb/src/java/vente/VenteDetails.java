@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import mg.cnaps.compta.ComptaEcriture;
 import produits.Ingredients;
 import produits.Recette;
 import stock.EtatStock;
@@ -58,7 +59,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setUnite(String unite) {
-        this.unite = unite != null ? unite : "";
+        this.unite = unite;
     }
 
     public String getIdbcfille() {
@@ -66,7 +67,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setIdbcfille(String idbcfille) {
-        this.idbcfille = idbcfille != null ? idbcfille : "";
+        this.idbcfille = idbcfille;
     }
 
     public double getMontantRevient() {
@@ -114,7 +115,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setDesignation(String designation) {
-        this.designation = designation != null ? designation : "";
+        this.designation = designation;
     }
 
     public String getIdDevise() {
@@ -123,14 +124,11 @@ public class VenteDetails extends ClassFille {
 
     public void setIdDevise(String idDevise) {
         if(this.getMode().equals("modif")){
-            if(idDevise == null || idDevise.isEmpty()){
-                this.idDevise = "MGA";
-            } else {
-                this.idDevise = idDevise;
+            if(idDevise.isEmpty()){
+                this.setIdDevise("MGA");
             }
-        } else {
-            this.idDevise = idDevise != null ? idDevise : "MGA";
         }
+        this.idDevise = idDevise;
     }
 
     public double getTauxDeChange() {
@@ -206,7 +204,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setId(String id) {
-        this.id = id != null ? id : "";
+        this.id = id;
     }
 
     public String getIdVente() {
@@ -214,7 +212,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setIdVente(String idVente) {
-        this.idVente = idVente != null ? idVente : "";
+        this.idVente = idVente;
     }
 
     public String getIdProduit() {
@@ -227,7 +225,7 @@ public class VenteDetails extends ClassFille {
                 throw new Exception("Produit obligatoire");
             }
         }
-        this.idProduit = idProduit != null ? idProduit : "";
+        this.idProduit = idProduit;
     }
 
     public String getIdOrigine() {
@@ -235,7 +233,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setIdOrigine(String idOrigine) {
-        this.idOrigine = idOrigine != null ? idOrigine : "";
+        this.idOrigine = idOrigine;
     }
 
     public String getCompte() {
@@ -243,10 +241,10 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setCompte(String compte) throws Exception{
-        if(this.getMode().equals("modif") && compte != null && compte.isEmpty()){
+        if(this.getMode().equals("modif") && compte.isEmpty()){
             throw new Exception("Compte obligatoire pour les details");
         }
-        this.compte = compte != null ? compte : "";
+        this.compte = compte;
     }
 
     public String getLibelle() {
@@ -254,7 +252,7 @@ public class VenteDetails extends ClassFille {
     }
 
     public void setLibelle(String libelle) {
-        this.libelle = libelle != null ? libelle : "";
+        this.libelle = libelle;
     }
 
     public double getQte() {
@@ -388,17 +386,55 @@ public class VenteDetails extends ClassFille {
         return msf;
     }
 
-    public MvtStockFille createMvtStockFilleReversed() throws Exception {
-        MvtStockFille msf = new MvtStockFille();
-        msf.setIdProduit(this.getIdProduit());
-        msf.setEntree(this.getQte());
-        return msf;
+    @Override
+    public void controlerUpdate(Connection c) throws Exception {
+//        super.controlerUpdate(c);
+
+
+        VenteDetails [] vD = (VenteDetails[]) CGenUtil.rechercher(new VenteDetails(), null, null, c, " and ID='" + this.getId() + "' ");
+
+        if (vD.length < 1) {
+            throw new Exception("Vente details introuvable : " + this.getId());
+        }
+        VenteDetails lastDetail = vD[0];
+        System.out.println("ITOOO:"+lastDetail.getId()+" , qte:"+lastDetail.getQte());
+        System.out.println("VAOVAO : "+this.getQte());
+
+        System.out.println("ITOOO PUVENTE:"+lastDetail.getPu()+" , qte:"+lastDetail.getQte());
+        System.out.println("VAOVAO PUVENTE: "+this.getPu());
+        System.out.println("Last details TVA : " + lastDetail.getTva());
+        double lastDetailTTC = lastDetail.calculTTC();
+
+        double updatedTTC = this.calculTTC();
+        Ingredients initial = (Ingredients) new Ingredients().getById(lastDetail.getIdProduit(),"AS_INGREDIENTS",null);
+        if(initial.getChangeable()==0){
+            throw new Exception("Echange impossible car changeable = "+0);
+        }
+        else if(initial.getChangeable()==1){
+            if(lastDetailTTC>updatedTTC){
+                throw new Exception("Echange impossible car montant inferieur avec changeable =  "+ 1);
+            }
+        }
+        System.out.println(" Mety update !!! ");
+
+        // this.CheckEtatStock(c);
+
+
     }
+
+    public double calculTTC(){
+
+        double puRemise = this.getPu()-this.getPu()*(this.getRemise()/100);
+        return (puRemise*this.getQte())+(puRemise*this.getQte()*(this.getTva()/100));
+    }
+
+
 
     @Override
     public void controler(Connection c) throws Exception {
        super.controler(c);
-       //CheckEtatStock( c);
+
+
     }
     
 

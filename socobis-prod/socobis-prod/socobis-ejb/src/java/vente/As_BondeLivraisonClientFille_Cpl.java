@@ -78,8 +78,7 @@ public class As_BondeLivraisonClientFille_Cpl extends As_BondeLivraisonClientFil
         MvtStockFille mf=new MvtStockFille();
         mf.setIdMvtStock(this.getId());
         mf.setIdProduit(this.getProduit());
-        mf.setSortie(this.getQuantite());
-        // mf.setSortie(this.getResteASortir());
+        mf.setSortie(this.getResteASortir());
         mf.setIdVenteDetail(this.getIdventedetail());
         mf.setDesignation(this.getIdproduitlib());
         return mf;

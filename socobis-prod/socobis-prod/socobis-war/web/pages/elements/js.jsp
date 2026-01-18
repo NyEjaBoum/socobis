@@ -438,7 +438,7 @@
                 const doc = new DOMParser().parseFromString(response, 'text/html');
                 const targetDiv = document.getElementById('butfillejsp');
                 if (targetDiv) {
-                    // targetDiv.innerHTML = '';
+                    targetDiv.innerHTML = '';
                     const newContent = doc.getElementById('butfillejsp');
                     if (newContent) {
                         targetDiv.innerHTML = newContent.innerHTML;

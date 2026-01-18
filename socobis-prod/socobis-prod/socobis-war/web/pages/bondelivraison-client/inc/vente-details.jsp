@@ -5,7 +5,7 @@
 --%>
 
 
-<%@page import="vente.VenteDetailsLib"%>
+<%@page import="vente.VenteDetailsLib" %>
 <%@ page import="user.*" %>
 <%@ page import="bean.*" %>
 <%@ page import="utilitaire.*" %>
@@ -13,58 +13,72 @@
 
 
 <%
-    try{
-    VenteDetailsLib t = new VenteDetailsLib();
-    t.setNomTable("VENTE_DETAILS_CPL");
-    String listeCrt[] = {};
-    String listeInt[] = {};
-    String libEntete[] = {"id", "designation", "qte","pu","puRevient","idDevise","tauxDeChange","tva","montantRemise","montant","montantRevient","margeBrute"};
-    PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
-    pr.setUtilisateur((user.UserEJB) session.getValue("u"));
-    pr.setLien((String) session.getValue("lien"));
-    if(request.getParameter("id") != null){
-        pr.setAWhere(" and idorigine='"+request.getParameter("id")+"'");
-    }
-    String[] colSomme = null;
+    try {
+        VenteDetailsLib t = new VenteDetailsLib();
+        t.setNomTable("VENTE_DETAILS_CPL");
+        String listeCrt[] = {};
+        String listeInt[] = {};
+        String libEntete[] = {"id", "idProduit", "designation", "qte", "pu", "puRevient", "idDevise", "tauxDeChange", "tva", "montantRemise", "montant", "montantRevient", "margeBrute"};
+        PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
+        pr.setUtilisateur((user.UserEJB) session.getValue("u"));
+        pr.setLien((String) session.getValue("lien"));
+        if (request.getParameter("id") != null) {
+            pr.setAWhere(" and idorigine='" + request.getParameter("id") + "'");
+            String lienTableau[] = {pr.getLien() + "?but=vente/vente-details-echange.jsp"};
+            String colonneLien[] = {"id"};
+            pr.getTableau().setLien(lienTableau);
+            pr.getTableau().setColonneLien(colonneLien);
+        }
+        String[] colSomme = null;
 
-    pr.creerObjetPage(libEntete, colSomme);
-    int nombreLigne = pr.getTableau().getData().length;
+        pr.creerObjetPage(libEntete, colSomme);
+        int nombreLigne = pr.getTableau().getData().length;
 %>
 
 <div class="box-body">
     <%
-        String libEnteteAffiche[] =  {"id", "D&eacute;signation","Quantit&eacute;","PU","PU revient","Devise","Taux","TVA(en %)","remise (en %)","montant","montant revient","marge brute"};
+        String libEnteteAffiche[] = {"id", "Id Produit", "D&eacute;signation", "Quantit&eacute;", "PU", "PU revient", "Devise", "Taux", "TVA(en %)", "remise (en %)", "montant", "montant revient", "marge brute"};
         pr.getTableau().setLibelleAffiche(libEnteteAffiche);
-        VenteDetailsLib[] liste=(VenteDetailsLib[]) pr.getTableau().getData();
-        if(pr.getTableau().getHtml() != null){
+        VenteDetailsLib[] liste = (VenteDetailsLib[]) pr.getTableau().getData();
+
+        if (pr.getTableau().getHtml() != null) {
             out.println(pr.getTableau().getHtml());
     %>
     <div class="w-100" style="display: flex; flex-direction: row-reverse;">
-        <table style="width: 20%"class="table">
+        <h1> Tonga ny fanovana ! </h1>
+        <table style="width: 20%" class="table">
             <tr>
                 <td><b>Montant HT:</b></td>
-                <td><b><%=utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(),"montantHTLocal")) %> <%= ((VenteDetailsLib)pr.getListe()[0]).getIdDevise() %></b></td>
+                <td>
+                    <b><%=utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(), "montantHTLocal")) %> <%= ((VenteDetailsLib) pr.getListe()[0]).getIdDevise() %>
+                    </b></td>
             </tr>
             <tr>
                 <td><b>Montant TVA:</b></td>
-                <td><b><%= utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(),"montantTvaLocal")) %> <%= ((VenteDetailsLib)pr.getListe()[0]).getIdDevise() %></b></td>
+                <td>
+                    <b><%= utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(), "montantTvaLocal")) %> <%= ((VenteDetailsLib) pr.getListe()[0]).getIdDevise() %>
+                    </b></td>
             </tr>
             <tr>
                 <td><b>Montant TTC:</b></td>
-                <td><b><%= utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(),"montantTTCLocal")) %> <%= ((VenteDetailsLib)pr.getListe()[0]).getIdDevise() %></b></td>
+                <td>
+                    <b><%= utilitaire.Utilitaire.formaterAr(AdminGen.calculSommeDouble(pr.getListe(), "montantTTCLocal")) %> <%= ((VenteDetailsLib) pr.getListe()[0]).getIdDevise() %>
+                    </b></td>
             </tr>
         </table>
     </div>
-    <%  }if(pr.getTableau().getHtml() == null)
-         {
-               %><center><h4>Aucune donne trouvee</h4></center><%
-         }
+    <% }
+        if (pr.getTableau().getHtml() == null) {
+    %>
+    <center><h4>Aucune donne trouvee</h4></center>
+    <%
+        }
 
-        
+
     %>
 </div>
 <%
-} catch (Exception e) {
-    e.printStackTrace();
-}%>
+    } catch (Exception e) {
+        e.printStackTrace();
+    }%>
 

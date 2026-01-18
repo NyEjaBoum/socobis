@@ -304,14 +304,6 @@
     document.getElementById("export-btn-excel").addEventListener("click", exportExcel);
     document.getElementById("reporting-journalier").addEventListener("click", exportReportingJournalier);
 </script>
-
-  <!-- A ajouter a tous les pages -->
-    <script>
-        document.querySelectorAll("button.more_info").forEach(el => {
-            el.setAttribute("type", "button");
-        })
-    </script>
-    <!-- fin ajout -->
 <%
     }catch(Exception e){
 

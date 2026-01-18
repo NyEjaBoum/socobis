@@ -58,7 +58,7 @@
                                                 d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z" />
                                     </svg>
                                 </span>
-                                <input type="text" name="identifiant" value="admin"
+                                <input type="text" name="identifiant"
                                        placeholder="Entrer vos identifiant" required />
                             </span>
                     </label>
@@ -74,7 +74,7 @@
                                                 d="M17 10h-1V7a4 4 0 0 0-8 0v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-6 0V7a3 3 0 0 1 6 0v3z" />
                                     </svg>
                                 </span>
-                                <input type="password" name="passe" value="test"
+                                <input type="password" name="passe"
                                        placeholder="Entrer votre mot de passe" required />
                                 <span class="toggle-eye"
                                       title="Afficher le mot de passe" aria-hidden="true">

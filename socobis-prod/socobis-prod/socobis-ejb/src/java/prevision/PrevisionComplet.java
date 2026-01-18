@@ -51,7 +51,8 @@ public class PrevisionComplet extends PrevisionCPL implements ClassIA {
         this.setNomTable("PREVISION_COMPLET_CPL");
     }
 
-    
+
+    @Override
     public void attacherFacture(String[] ids, String u, Connection c)throws Exception{
         boolean canClose=false;
         try{
@@ -61,14 +62,15 @@ public class PrevisionComplet extends PrevisionCPL implements ClassIA {
             }
             if(this.getDaty() == null){
                 ((PrevisionComplet)this.getById(this.getId(), "PREVISION_COMPLET_CPL", c)).attacherFacture(ids,u,c);
+                return;
             }
         MvtCaisse[] mvtCaisses =  MvtCaisse.getAll(ids, c);
         PrevisionComplet[] previsions = {this};
         for (int i = 0; i < mvtCaisses.length; i++) {
-            MvtCaissePrevision[] mvts = mvtCaisses[0].attacherPrevision(previsions, u, c);
-            if(mvts.length >0){
+            MvtCaissePrevision[] mvts = mvtCaisses[i].attacherPrevision(previsions, u, c);
+//            if(mvts.length >0){
                 mvts[0].createObject(u,c);
-            }
+//            }
         }
         }catch(Exception e){
             throw e;
@@ -78,6 +80,8 @@ public class PrevisionComplet extends PrevisionCPL implements ClassIA {
             }
         }  
     }
+
+//    @Override // ⬅️ Ajouter pour clarifier l'override public void attacherFacture(String\[\] ids, String u, Connection c) throws Exception { boolean canClose = false; try { if (c == null) { c = new UtilDB().GetConn(); canClose = true; } if (this.getDaty() == null) { ((PrevisionComplet)this.getById(this.getId(), "PREVISION\_COMPLET\_CPL", c)) .attacherFacture(ids, u, c); return; // ⬅️ IMPORTANT: Sortir ici pour éviter double traitement } MvtCaisse\[\] mvtCaisses = MvtCaisse.getAll(ids, c); PrevisionComplet\[\] previsions = {this}; for (int i = 0; i < mvtCaisses.length; i++) { MvtCaissePrevision\[\] mvts = mvtCaisses\[i\].attacherPrevision(previsions, u, c); if (mvts.length > 0) { mvts\[0\].createObject(u, c); } } } catch (Exception e) { throw e; } finally { if (canClose) { c.close(); } } }
     
     public double getEcart() { 
         return this.isDepense() ? this.getDepenseEcart() : this.getRecetteEcart();
